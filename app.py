@@ -41,7 +41,8 @@ class App(tk.Tk):
         toolbar.pack(fill='x', pady=(0, 12))
         self.button(toolbar, '＋ Add videos', self.add_files, accent=True).pack(side='left')
         self.button(toolbar, 'Add folder', self.add_folder).pack(side='left', padx=8)
-        self.button(toolbar, 'Remove selected', self.remove).pack(side='left')
+        self.button(toolbar, 'Clear selected', lambda: self.remove(False)).pack(side='left', padx=(0, 8))
+        self.button(toolbar, 'Clear all videos', self.remove).pack(side='left')
         ttk.Label(toolbar, text='MKV · MP4 · M4V · MOV', foreground='#63718a').pack(side='right')
 
         table = ttk.Frame(shell)
@@ -214,11 +215,25 @@ class App(tk.Tk):
         if unresolved:
             self.show_report('Choose tracks manually', '\n\n'.join(unresolved))
 
-    def remove(self):
-        for key in self.tree.selection():
+    def remove(self, all_files=True):
+        if self.busy:
+            return
+        keys = self.tree.get_children() if all_files else self.tree.selection()
+        if not keys:
+            return
+        for key in keys:
             self.tree.delete(key)
             del self.videos[key]
         self.select()
+        for kind, combo in [('audio', self.batch_audio), ('subtitle', self.batch_subtitle)]:
+            languages = sorted({language(s) for v in self.videos.values() for s in v.streams(kind)})
+            choices = [KEEP] + ([NONE] if kind == 'subtitle' else []) + languages
+            combo.configure(values=choices)
+            if not self.videos or combo.get() not in choices:
+                combo.set(KEEP)
+        self.status.set(
+            f'{len(self.videos)} videos ready. Select a row to choose tracks, or apply batch language choices.'
+            if self.videos else 'Add videos to get started. Everything stays on your PC.')
 
     def browse(self):
         directory = filedialog.askdirectory(title='Save new copies here')

@@ -32,9 +32,63 @@ def check(report_path):
             window = App()
             window.withdraw()
             window.update_idletasks()
+            clear_button = next(button for button in window.controls
+                                if button.cget('text') == 'Clear all videos')
+            for selected in (True, False):
+                for _ in range(3):
+                    key = window.tree.insert('', 'end')
+                    window.videos[key] = video
+                    window.refresh(key)
+                if selected:
+                    window.tree.selection_set(key)
+                window.select()
+                window.batch_audio.configure(values=['Keep existing', 'English'])
+                window.batch_audio.set('English')
+                window.set_busy(True)
+                clear_button.invoke()
+                assert len(window.videos) == 3
+                window.set_busy(False)
+                clear_button.invoke()
+                assert not window.videos and not window.tree.get_children()
+                assert window.active is None
+                assert window.audio.get() == window.subtitle.get() == ''
+                assert window.batch_audio.get() == 'Keep existing'
+                assert tuple(window.batch_audio['values']) == ('Keep existing',)
+                assert window.batch_subtitle.get() == 'Keep existing'
+                clear_button.invoke()
+            selected_button = next(button for button in window.controls
+                                   if button.cget('text') == 'Clear selected')
+            keys = []
+            for _ in range(4):
+                key = window.tree.insert('', 'end')
+                keys.append(key)
+                window.videos[key] = Video(video.path, video.info, audio=2)
+                window.refresh(key)
+            selected_button.invoke()
+            assert len(window.videos) == 4
+            window.tree.selection_set(keys[0], keys[2])
+            window.select()
+            window.set_busy(True)
+            selected_button.invoke()
+            assert len(window.videos) == 4
+            window.set_busy(False)
+            selected_button.invoke()
+            assert list(window.videos) == [keys[1], keys[3]]
+            assert window.tree.get_children() == (keys[1], keys[3])
+            assert all(v.audio == 2 for v in window.videos.values())
+            assert window.active is None
+            window.tree.selection_set(keys[1])
+            selected_button.invoke()
+            assert list(window.videos) == [keys[3]]
+            window.tree.selection_set(keys[3])
+            selected_button.invoke()
+            assert not window.videos and not window.tree.get_children()
+            assert window.audio.get() == window.subtitle.get() == ''
+            assert tuple(window.batch_audio['values']) == ('Keep existing',)
+            assert video.path.exists()
             window.destroy()
             result = {'ok': True, 'checks': ['bundled FFmpeg', 'bundled FFprobe',
-                      'generated video', 'changed audio default', 'verified output tracks', 'desktop UI startup']}
+                      'generated video', 'changed audio default', 'verified output tracks', 'desktop UI startup', 'clear all videos with one or no selection', 'clear disabled while busy', 'clear selected single and multiple rows', 'clear selected without selection', 'remaining video choices preserved']}
     except Exception as exc:
         result['error'] = str(exc)
     report.write_text(json.dumps(result, indent=2), encoding='utf-8')
