@@ -4,7 +4,7 @@
 
 Track Defaults is a local Windows desktop app for videos containing multiple audio tracks and subtitles. It lists the embedded tracks and lets you choose which ones a media player should use by default.
 
-For example, you can set English audio and Hebrew subtitles for a whole season of a show, even when track order differs between episodes.
+For example, you can set Japanese audio and English subtitles for a whole season of a show, even when track order differs between episodes.
 
 ![Track Defaults showing the video list, audio and subtitle choices, batch controls, and save controls](docs/images/track-defaults.png)
 
