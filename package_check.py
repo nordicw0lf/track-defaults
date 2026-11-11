@@ -30,8 +30,21 @@ def check(report_path):
             assert [s['disposition']['default'] for s in streams if s['codec_type'] == 'audio'] == [0, 1]
             from app import App
             window = App()
-            window.withdraw()
             window.update_idletasks()
+            save_controls = [window.out_entry] + [
+                button for button in window.controls
+                if button.cget('text') in ('Browse…', 'Save all planned changes')]
+            for size in ('1180x760', '960x650'):
+                window.geometry(size)
+                window.update()
+                for control in save_controls:
+                    x = control.winfo_rootx() - window.winfo_rootx()
+                    y = control.winfo_rooty() - window.winfo_rooty()
+                    assert control.winfo_ismapped(), (size, str(control))
+                    assert 0 <= x and x + control.winfo_width() <= window.winfo_width()
+                    assert 0 <= y and y + control.winfo_height() <= window.winfo_height()
+                    assert control.winfo_height() >= control.winfo_reqheight()
+            window.withdraw()
             clear_button = next(button for button in window.controls
                                 if button.cget('text') == 'Clear all videos')
             for selected in (True, False):
@@ -88,8 +101,9 @@ def check(report_path):
             assert video.path.exists()
             window.destroy()
             result = {'ok': True, 'checks': ['bundled FFmpeg', 'bundled FFprobe',
-                      'generated video', 'changed audio default', 'verified output tracks', 'desktop UI startup', 'clear all videos with one or no selection', 'clear disabled while busy', 'clear selected single and multiple rows', 'clear selected without selection', 'remaining video choices preserved']}
+                      'generated video', 'changed audio default', 'verified output tracks', 'desktop UI startup', 'save controls visible at startup and minimum size', 'clear all videos with one or no selection', 'clear disabled while busy', 'clear selected single and multiple rows', 'clear selected without selection', 'remaining video choices preserved']}
     except Exception as exc:
         result['error'] = str(exc)
     report.write_text(json.dumps(result, indent=2), encoding='utf-8')
     return 0 if result['ok'] else 1
+
