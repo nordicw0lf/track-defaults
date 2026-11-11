@@ -6,6 +6,8 @@ Track Defaults is a local Windows desktop app for videos containing multiple aud
 
 For example, you can set English audio and Hebrew subtitles for a whole season of a show, even when track order differs between episodes.
 
+![Track Defaults showing the video list, audio and subtitle choices, batch controls, and save controls](docs/images/track-defaults.png)
+
 ## Features
 
 - Inspect track language tags, titles, codecs, audio channel counts, and default/forced flags.
