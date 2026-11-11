@@ -132,3 +132,9 @@ Open an issue with your Windows version, video container, chosen tracks, and err
 Uses [FFmpeg](https://ffmpeg.org/) and [FFprobe](https://ffmpeg.org/ffprobe.html), with Windows binaries from [Gyan's builds](https://www.gyan.dev/ffmpeg/builds/). Portable packages also include Python and Tcl/Tk; included license notices are in the package's `licenses` folder.
 
 Generated binaries, downloaded tools, and local environments are excluded from the source repository. Distributable packages belong in GitHub Releases.
+
+## License
+
+Track Defaults code and documentation are licensed under the [MIT License](LICENSE), copyright (c) 2026 nordicw0lf. You may use, modify, and redistribute them, including commercially, subject to the license terms.
+
+Bundled FFmpeg/FFprobe, Python, and Tcl/Tk retain their respective licenses. The current FFmpeg build uses GPLv3 components. See [third-party notices and binary release requirements](THIRD_PARTY_NOTICES.md), including the outstanding review of corresponding-source availability for distributed FFmpeg binaries.

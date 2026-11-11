@@ -17,6 +17,8 @@ def main():
                     '--distpath', str(RELEASE), '--workpath', str(ROOT / 'build'),
                     '--add-data', str(ROOT / 'tools') + ';tools',
                     '--add-data', str(ROOT / 'README.md') + ';.',
+                    '--add-data', str(ROOT / 'LICENSE') + ';.',
+                    '--add-data', str(ROOT / 'THIRD_PARTY_NOTICES.md') + ';.',
                     str(ROOT / 'app.py')], cwd=ROOT, check=True)
     exe = RELEASE / 'Track Defaults.exe'
     readme = RELEASE / 'START HERE.txt'
@@ -37,10 +39,10 @@ def main():
         'See licenses and source folders for included notices and app source.\n', encoding='utf-8')
     archive = RELEASE / 'Track Defaults-Windows-x64.zip'
     with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
-        for file in [exe, readme, ROOT / 'README.md']:
+        for file in [exe, readme, ROOT / 'README.md', ROOT / 'LICENSE', ROOT / 'THIRD_PARTY_NOTICES.md']:
             bundle.write(file, 'Track Defaults/' + file.name)
         bundle.write(ROOT / 'tools' / 'LICENSE', 'Track Defaults/licenses/FFmpeg-GPLv3.txt')
-        for file in ['app.py', 'tracks.py', 'setup_tools.py', 'package_check.py', 'build_release.py', 'requirements-build.txt', 'README.md']:
+        for file in ['app.py', 'tracks.py', 'setup_tools.py', 'package_check.py', 'build_release.py', 'requirements-build.txt', 'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md']:
             bundle.write(ROOT / file, 'Track Defaults/source/' + file)
         python_license = Path(sys.base_prefix) / 'LICENSE.txt'
         if python_license.exists():
