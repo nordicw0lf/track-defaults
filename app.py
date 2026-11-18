@@ -14,7 +14,7 @@ class App(tk.Tk):
         self.title('Track Defaults')
         self.geometry('1180x760')
         self.minsize(960, 650)
-        self.configure(bg='#f3f5f9')
+        self.dark_mode = tk.BooleanVar(value=False)
         self.videos = {}
         self.events = queue.Queue()
         self.cancel = threading.Event()
@@ -38,14 +38,15 @@ class App(tk.Tk):
         shell.columnconfigure(0, weight=1)
         shell.rowconfigure(3, weight=1)
         ttk.Label(shell, text='Track Defaults', font=('Segoe UI', 25, 'bold')).grid(row=0, column=0, sticky='w')
-        ttk.Label(shell, text='Your videos. Your languages. Ready when you press play.', foreground='#63718a').grid(row=1, column=0, sticky='w', pady=(3, 18))
+        ttk.Label(shell, text='Your videos. Your languages. Ready when you press play.', style='Muted.TLabel').grid(row=1, column=0, sticky='w', pady=(3, 18))
         toolbar = ttk.Frame(shell)
         toolbar.grid(row=2, column=0, sticky='ew', pady=(0, 12))
         self.button(toolbar, '＋ Add videos', self.add_files, accent=True).pack(side='left')
         self.button(toolbar, 'Add folder', self.add_folder).pack(side='left', padx=8)
         self.button(toolbar, 'Clear selected', lambda: self.remove(False)).pack(side='left', padx=(0, 8))
         self.button(toolbar, 'Clear all videos', self.remove).pack(side='left')
-        ttk.Label(toolbar, text='MKV · MP4 · M4V · MOV', foreground='#63718a').pack(side='right')
+        ttk.Checkbutton(toolbar, text='Dark mode', variable=self.dark_mode, command=self.apply_theme).pack(side='right', padx=(12, 0))
+        ttk.Label(toolbar, text='MKV · MP4 · M4V · MOV', style='Muted.TLabel').pack(side='right')
 
         table = ttk.Frame(shell)
         table.grid(row=3, column=0, sticky='nsew')
@@ -61,7 +62,7 @@ class App(tk.Tk):
 
         editor = ttk.LabelFrame(shell, text='  Selected video  ', padding=12)
         editor.grid(row=4, column=0, sticky='ew', pady=(14, 10))
-        self.file_label = ttk.Label(editor, text='Select a video to inspect its tracks.', foreground='#63718a')
+        self.file_label = ttk.Label(editor, text='Select a video to inspect its tracks.', style='Muted.TLabel')
         self.file_label.pack(anchor='w', pady=(0, 7))
         row = ttk.Frame(editor)
         row.pack(fill='x')
@@ -88,7 +89,7 @@ class App(tk.Tk):
         self.batch_subtitle.pack(side='left')
         self.button(row, 'Apply to selected', lambda: self.apply_batch(False)).pack(side='left', padx=(18, 8))
         self.button(row, 'Apply to all', lambda: self.apply_batch(True)).pack(side='left')
-        ttk.Label(batch, text='Matches by language, even if track order differs. Missing or ambiguous matches are left for you to choose.', foreground='#63718a').pack(anchor='w', pady=(8, 0))
+        ttk.Label(batch, text='Matches by language, even if track order differs. Missing or ambiguous matches are left for you to choose.', style='Muted.TLabel').pack(anchor='w', pady=(8, 0))
 
         destination = ttk.Frame(shell)
         destination.grid(row=6, column=0, sticky='ew', pady=(14, 8))
@@ -101,12 +102,63 @@ class App(tk.Tk):
         self.button(footer, 'Save all planned changes', self.start_save, accent=True).pack(side='right')
         self.cancel_button = ttk.Button(footer, text='Cancel', command=self.cancel.set, state='disabled')
         self.cancel_button.pack(side='right', padx=8)
-        ttk.Label(footer, text='Originals kept • No re-encoding', foreground='#63718a').pack(side='left')
+        ttk.Label(footer, text='Originals kept • No re-encoding', style='Muted.TLabel').pack(side='left')
         self.progress = ttk.Progressbar(shell, mode='indeterminate')
         self.progress.grid(row=8, column=0, sticky='ew', pady=(12, 6))
         ttk.Label(shell, textvariable=self.status, wraplength=880).grid(row=9, column=0, sticky='w')
+        self.apply_theme()
         self.after(100, self.drain)
         self.protocol('WM_DELETE_WINDOW', self.close)
+
+    def apply_theme(self):
+        dark = self.dark_mode.get()
+        bg, fg, surface, muted, border, selected = (
+            ('#18202d', '#e6edf7', '#222d3d', '#a9bad0', '#48566c', '#34588a')
+            if dark else
+            ('#f3f5f9', '#172338', '#ffffff', '#63718a', '#bbc4d2', '#dce8ff'))
+        style = ttk.Style(self)
+        style.configure('.', background=bg, foreground=fg, bordercolor=border,
+                        lightcolor=bg, darkcolor=border, troughcolor=surface)
+        style.configure('Muted.TLabel', foreground=muted)
+        style.configure('TButton', background=surface)
+        style.map('TButton', background=[('active', selected), ('disabled', bg)],
+                  foreground=[('disabled', muted)])
+        style.configure('Accent.TButton', background='#2563eb', foreground='white')
+        style.map('Accent.TButton',
+                  background=[('disabled', border), ('active', '#1d4ed8')],
+                  foreground=[('disabled', muted), ('!disabled', 'white')])
+        style.map('TCheckbutton', background=[('active', bg)],
+                  indicatorbackground=[('selected', '#2563eb'), ('!selected', surface)])
+        for name in ('TEntry', 'TCombobox'):
+            style.configure(name, fieldbackground=surface, foreground=fg,
+                            insertcolor=fg, arrowcolor=fg)
+            style.map(name, fieldbackground=[('disabled', bg), ('readonly', surface)],
+                      foreground=[('disabled', muted), ('readonly', fg)],
+                      selectbackground=[('!disabled', selected)],
+                      selectforeground=[('!disabled', fg)])
+        style.configure('Treeview', background=surface, fieldbackground=surface, foreground=fg)
+        style.configure('Treeview.Heading', background=bg, foreground=fg)
+        style.map('Treeview', background=[('selected', selected)], foreground=[('selected', fg)])
+        style.map('Treeview.Heading', background=[('active', selected)])
+        style.configure('Vertical.TScrollbar', background=border, arrowcolor=fg)
+        style.map('Vertical.TScrollbar', background=[('active', selected)])
+        style.configure('Horizontal.TProgressbar', background='#2563eb', troughcolor=surface)
+        for option, value in [('background', surface), ('foreground', fg),
+                              ('selectBackground', selected), ('selectForeground', fg)]:
+            self.option_add('*TCombobox*Listbox.' + option, value)
+        # Refresh dropdowns already created before a theme switch.
+        for combo in (self.audio, self.subtitle, self.batch_audio, self.batch_subtitle):
+            popdown = self.tk.call('ttk::combobox::PopdownWindow', str(combo))
+            self.tk.call(str(popdown) + '.f.l', 'configure', '-background', surface,
+                         '-foreground', fg, '-selectbackground', selected, '-selectforeground', fg)
+        self.configure(background=bg)
+        for window in self.winfo_children():
+            if isinstance(window, tk.Toplevel):
+                window.configure(background=bg)
+                for widget in window.winfo_children():
+                    if isinstance(widget, tk.Text):
+                        widget.configure(background=surface, foreground=fg, insertbackground=fg,
+                                         selectbackground=selected, selectforeground=fg)
 
     def button(self, parent, text, action, accent=False):
         button = ttk.Button(parent, text=text, command=action, style='Accent.TButton' if accent else 'TButton')
@@ -316,6 +368,7 @@ class App(tk.Tk):
         text.insert('1.0', content)
         text.configure(state='disabled')
         ttk.Button(window, text='Close', command=window.destroy).pack(pady=10)
+        self.apply_theme()
 
     def close(self):
         if self.busy:

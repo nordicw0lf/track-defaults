@@ -45,6 +45,21 @@ def check(report_path):
                     assert 0 <= y and y + control.winfo_height() <= window.winfo_height()
                     assert control.winfo_height() >= control.winfo_reqheight()
             window.withdraw()
+            from tkinter import ttk
+            window.output.set('theme-check-output')
+            for dark in (True, False, True):
+                window.dark_mode.set(dark)
+                window.apply_theme()
+                window.update()
+                assert window.output.get() == 'theme-check-output'
+                expected = '#222d3d' if dark else '#ffffff'
+                assert ttk.Style(window).lookup('Treeview', 'fieldbackground') == expected
+                window.set_busy(True)
+                window.apply_theme()
+                assert window.out_entry.instate(['disabled'])
+                window.set_busy(False)
+            window.dark_mode.set(False)
+            window.apply_theme()
             clear_button = next(button for button in window.controls
                                 if button.cget('text') == 'Clear all videos')
             for selected in (True, False):
@@ -101,7 +116,7 @@ def check(report_path):
             assert video.path.exists()
             window.destroy()
             result = {'ok': True, 'checks': ['bundled FFmpeg', 'bundled FFprobe',
-                      'generated video', 'changed audio default', 'verified output tracks', 'desktop UI startup', 'save controls visible at startup and minimum size', 'clear all videos with one or no selection', 'clear disabled while busy', 'clear selected single and multiple rows', 'clear selected without selection', 'remaining video choices preserved']}
+                      'generated video', 'changed audio default', 'verified output tracks', 'desktop UI startup', 'light and dark theme switching', 'save controls visible at startup and minimum size', 'clear all videos with one or no selection', 'clear disabled while busy', 'clear selected single and multiple rows', 'clear selected without selection', 'remaining video choices preserved']}
     except Exception as exc:
         result['error'] = str(exc)
     report.write_text(json.dumps(result, indent=2), encoding='utf-8')
